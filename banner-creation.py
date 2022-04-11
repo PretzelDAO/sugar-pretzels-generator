@@ -181,7 +181,7 @@ def count_traits(banner, pretzel, salt, half_chocolate_coat, full_chocolate_coat
 
 ## Generate Sugar Pretzle Banners
 
-TOTAL_BANNERS = 1 # Number of random unique images we want to generate
+TOTAL_BANNERS = 5 # Number of random unique images we want to generate
 #PRETZELS_PER_BANNER = 35 #Number of Pretzels in Picture
 BANNER_DIMENSIONS = [3000,1000] #Pixels of Banner
 PRETZEL_SIZE = 320 #Height and Width of the square including pretzel and white space.
@@ -235,10 +235,10 @@ for banner in all_banners:
     for pretzel in banner["image_details"]:
 
         
-        p1 = Image.open(f'./pretzel_pars_white_space/{pretzel_files[pretzel["Pretzel"]]}.png')
-        p2 = Image.open(f'./pretzel_pars_white_space/{salt_files[pretzel["Salt"]]}.png')
-        p3 = Image.open(f'./pretzel_pars_white_space/{chocolate_coat_files[pretzel["Chocolate_Coat"]]}.png')
-        p4 = Image.open(f'./pretzel_pars_white_space/{topping_files[pretzel["Topping"]]}.png')
+        p1 = Image.open(f'./pretzel_parts_white_space/{pretzel_files[pretzel["Pretzel"]]}.png')
+        p2 = Image.open(f'./pretzel_parts_white_space/{salt_files[pretzel["Salt"]]}.png')
+        p3 = Image.open(f'./pretzel_parts_white_space/{chocolate_coat_files[pretzel["Chocolate_Coat"]]}.png')
+        p4 = Image.open(f'./pretzel_parts_white_space/{topping_files[pretzel["Topping"]]}.png')
 
 
         #Create each composite
@@ -249,7 +249,7 @@ for banner in all_banners:
         com3 = com3.rotate(rotation)
         com3 = com3.resize(size)
 
-        com3.save("./images/" + str(k) + "test.png")
+        #com3.save("./images/" + str(k) + "test.png")
     
         #compose banner
         banner_composition.alpha_composite(com3, (places_for_pretzels[k][0],places_for_pretzels[k][1]))
