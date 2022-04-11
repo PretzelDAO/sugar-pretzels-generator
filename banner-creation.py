@@ -1,3 +1,4 @@
+from logging.handlers import RotatingFileHandler
 from re import X
 from PIL import Image 
 from IPython.display import display 
@@ -98,7 +99,6 @@ topping_files = {
 def create_pretzle():
 
     new_pretzle = {}
-    
 
     new_pretzle ["Pretzel"] = "Classic"
     new_pretzle ["Salt"] = random.choices(salt, salt_weights)[0]
@@ -120,23 +120,14 @@ def create_pretzle():
     return new_pretzle
     
 
-
-## Generate Sugar Pretzle Banners
-
-TOTAL_BANNERS = 1 # Number of random unique images we want to generate
-PRETZELS_PER_BANNER = 35 #Number of Pretzels in Picture
-
-
-all_banners = [] 
-
 # A recursive function to generate unique banner combinations
-def create_new_banner():
+def create_new_banner(number_of_pretzles):
     
     new_banner = [] #
 
     # For each position in banner create Pretzel
     i=0
-    while i < PRETZELS_PER_BANNER:
+    while i < number_of_pretzles:
         new_banner.append(create_pretzle())
         i=i+1
 
@@ -144,94 +135,110 @@ def create_new_banner():
         return create_new_banner()
     else:
         return new_banner
-    
-    
-# Generate the unique combinations based on trait weightings
-for i in range(TOTAL_BANNERS): 
-    
-    new_sugar_pretzle_banner = create_new_banner()
-    
-    all_banners.append(new_sugar_pretzle_banner)
-
 
 # Returns true if all images are unique
 def all_banners_unique(all_banners):
     seen = list()
-    return not any(i in seen or seen.append(i) for i in all_banners)
-
-print("Are all banners unique?", all_banners_unique(all_banners))
+    return not any(i["image_details"] in seen or seen.append(i["image_details"]) for i in all_banners)
 
 
-# Add token Id to each banner
-i = 0
-for item in all_banners:
-    item[i]["tokenId"] = i
-    i = i + 1
-   
-# Get Trait Counts
+# Returns counts
 
-pretzle_count = {}
-for item in pretzel:
-    pretzle_count[item] = 0
+def count_traits(banner, pretzel, salt, half_chocolate_coat, full_chocolate_coat, topping_half, topping_full):
+
+    pretzle_count = {}
+    for item in pretzel:
+        pretzle_count[item] = 0
     
-salt_count = {}
-for item in salt:
-    salt_count[item] = 0
+    salt_count = {}
+    for item in salt:
+        salt_count[item] = 0
 
-chocolate_coat_count = {}
-for item in half_chocolate_coat:
-    chocolate_coat_count[item] = 0
-for item in full_chocolate_coat:
-    chocolate_coat_count[item] = 0
+    chocolate_coat_count = {}
+    for item in half_chocolate_coat:
+        chocolate_coat_count[item] = 0
+    for item in full_chocolate_coat:
+        chocolate_coat_count[item] = 0
     
-topping_count = {}
-for item in topping_half:
-    topping_count[item] = 0
-for item in topping_full:
-    topping_count[item] = 0
+    topping_count = {}
+    for item in topping_half:
+        topping_count[item] = 0
+    for item in topping_full:
+        topping_count[item] = 0
     
 
-for banner in all_banners:
     for pretzel in banner:
         pretzle_count[pretzel["Pretzel"]] += 1
         salt_count[pretzel["Salt"]] += 1
         chocolate_coat_count[pretzel["Chocolate_Coat"]] += 1
         topping_count[pretzel["Topping"]] += 1
     
-#print(pretzle_count)
-#print(salt_count)
-#print(chocolate_coat_count)
-#print(topping_count)
+    return {"Pretzel_count": pretzle_count,
+            "Salt_count": salt_count,
+            "Chocolate_coat_count":chocolate_coat_count,
+            "Topping_count": topping_count}
+
+
+## Generate Sugar Pretzle Banners
+
+TOTAL_BANNERS = 1 # Number of random unique images we want to generate
+#PRETZELS_PER_BANNER = 35 #Number of Pretzels in Picture
+BANNER_DIMENSIONS = [3000,1000] #Pixels of Banner
+PRETZEL_SIZE = 320 #Height and Width of the square including pretzel and white space.
+DISTANCE_BETWEEN_PRETZELS = 500 #distance between upper left of 2 pretzel squares including white space
+ROTATION = 40
+
+## Calculate places the Pretzels take in Banner:
+x=0
+y=-PRETZEL_SIZE/2
+places_for_pretzels = []
+
+while y <= BANNER_DIMENSIONS[1]:
+    places_for_pretzels.append([int(x),int(y)])
+    x+=DISTANCE_BETWEEN_PRETZELS
+    if x >= BANNER_DIMENSIONS[0]:
+        x=x-BANNER_DIMENSIONS[0]-0.5*DISTANCE_BETWEEN_PRETZELS
+        if x <= 0-PRETZEL_SIZE:
+            x+=PRETZEL_SIZE
+        y+=DISTANCE_BETWEEN_PRETZELS/2
+print(places_for_pretzels)
+print(len(places_for_pretzels))
+
+all_banners = [] 
+
+# Generate the unique combinations based on trait weightings
+for i in range(TOTAL_BANNERS): 
+    
+    banner_dict = {}
+    banner_dict["id"] = i
+    banner_dict["image_details"] = create_new_banner(len(places_for_pretzels))
+    banner_dict["trait_count"] = count_traits(banner_dict["image_details"], pretzel,salt,half_chocolate_coat,full_chocolate_coat,topping_half,topping_full)
+    all_banners.append(banner_dict)
+
+print("Are all banners unique?", all_banners_unique(all_banners))
 
 
 #### Generate Pretzels
 
 #os.mkdir(f'./images')
 
-places_for_pretzels =[
-    [0, -150], [500, -150], [1000, -150], [1500, -150], [2000,-150], [2500, -150], [3000,-150],
-    [-250, 100], [250, 100], [750, 100], [1250, 100], [1750,100], [2250, 100], [2750,100],
-    [0, 350], [500, 350], [1000, 350], [1500, 350], [2000,350], [2500, 350], [3000,350],
-    [-250, 600], [250, 600], [750, 600], [1250, 600], [1750,600], [2250, 600], [2750,600],
-    [0, 850], [500, 850], [1000, 850], [1500, 850], [2000,850], [2500, 850], [3000,850]
-]
-
 for banner in all_banners:
 
     pretzel_compositions = []
-    size = 350, 350
+    size = (PRETZEL_SIZE,PRETZEL_SIZE)
+    rotation = ROTATION
     banner_background = Image.open(f'banner.png')
     banner_composition = banner_background.copy()
 
     k = 0
 
-    for pretzel in banner:
+    for pretzel in banner["image_details"]:
 
         
-        p1 = Image.open(f'./pretzel_parts/{pretzel_files[pretzel["Pretzel"]]}.png')
-        p2 = Image.open(f'./pretzel_parts/{salt_files[pretzel["Salt"]]}.png')
-        p3 = Image.open(f'./pretzel_parts/{chocolate_coat_files[pretzel["Chocolate_Coat"]]}.png')
-        p4 = Image.open(f'./pretzel_parts/{topping_files[pretzel["Topping"]]}.png')
+        p1 = Image.open(f'./pretzel_pars_white_space/{pretzel_files[pretzel["Pretzel"]]}.png')
+        p2 = Image.open(f'./pretzel_pars_white_space/{salt_files[pretzel["Salt"]]}.png')
+        p3 = Image.open(f'./pretzel_pars_white_space/{chocolate_coat_files[pretzel["Chocolate_Coat"]]}.png')
+        p4 = Image.open(f'./pretzel_pars_white_space/{topping_files[pretzel["Topping"]]}.png')
 
 
         #Create each composite
@@ -239,24 +246,15 @@ for banner in all_banners:
         com2 = Image.alpha_composite(com1, p3)
         com3 = Image.alpha_composite(com2, p4)
         
-        com3 = com3.rotate(40)
+        com3 = com3.rotate(rotation)
         com3 = com3.resize(size)
 
         com3.save("./images/" + str(k) + "test.png")
-
-        
-
-
-
-        places_for_pretzels[k]
     
         #compose banner
         banner_composition.alpha_composite(com3, (places_for_pretzels[k][0],places_for_pretzels[k][1]))
         k += 1
 
-
-
-
     #Convert to RGB
-    file_name = str(banner[0]["tokenId"]) + ".png"
+    file_name = str(banner["id"]) + ".png"
     banner_composition.save("./images/" + file_name)
