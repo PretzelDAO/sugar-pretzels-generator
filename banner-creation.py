@@ -207,7 +207,7 @@ def calculate_grid(pretzel_size):
 
 ## Generate Sugar Pretzle Banners
 
-TOTAL_BANNERS = 10 # Number of random unique images we want to generate
+TOTAL_BANNERS = 1 # Number of random unique images we want to generate
 BANNER_DIMENSIONS = [3000,1000] #Pixels of Banner
 
 ## Calculate places the Pretzels take in Banner:
