@@ -45,6 +45,12 @@ topping_full = ['Full Sprinkles Brown', 'Full Sprinkles White', 'Full Sprinkles 
     'No Topping']
 topping_full_weights = [9 , 9 , 6 , 3 ,9, 9, 6 ,3 ,9, 9 , 6 , 3, 19]
 
+rotation = [-40,40]
+rotation_weights = [20,80]
+
+size = [80, 160, 240, 320, 400, 480]
+size_weights = [5, 10, 20, 40, 20, 5]
+
 #Classify traits
 
 pretzel_files = {
@@ -178,31 +184,34 @@ def count_traits(banner, pretzel, salt, half_chocolate_coat, full_chocolate_coat
             "Chocolate_coat_count":chocolate_coat_count,
             "Topping_count": topping_count}
 
+def calculate_grid(pretzel_size):
+    x=0
+    y=-pretzel_size/2
+    places_for_pretzels = []
+
+    disctance_between_pretzles = pretzel_size*1.5625
+    print(disctance_between_pretzles)
+
+    while y <= BANNER_DIMENSIONS[1]:
+        places_for_pretzels.append([int(x),int(y)])
+        x+=disctance_between_pretzles
+        if x >= BANNER_DIMENSIONS[0]:
+            x=x-BANNER_DIMENSIONS[0]-0.5*disctance_between_pretzles
+            if x <= 0-pretzel_size:
+                x+=pretzel_size
+            y+=disctance_between_pretzles/2
+
+
+    return(places_for_pretzels)
+
 
 ## Generate Sugar Pretzle Banners
 
-TOTAL_BANNERS = 5 # Number of random unique images we want to generate
-#PRETZELS_PER_BANNER = 35 #Number of Pretzels in Picture
+TOTAL_BANNERS = 10 # Number of random unique images we want to generate
 BANNER_DIMENSIONS = [3000,1000] #Pixels of Banner
-PRETZEL_SIZE = 320 #Height and Width of the square including pretzel and white space.
-DISTANCE_BETWEEN_PRETZELS = 500 #distance between upper left of 2 pretzel squares including white space
-ROTATION = 40
 
 ## Calculate places the Pretzels take in Banner:
-x=0
-y=-PRETZEL_SIZE/2
-places_for_pretzels = []
 
-while y <= BANNER_DIMENSIONS[1]:
-    places_for_pretzels.append([int(x),int(y)])
-    x+=DISTANCE_BETWEEN_PRETZELS
-    if x >= BANNER_DIMENSIONS[0]:
-        x=x-BANNER_DIMENSIONS[0]-0.5*DISTANCE_BETWEEN_PRETZELS
-        if x <= 0-PRETZEL_SIZE:
-            x+=PRETZEL_SIZE
-        y+=DISTANCE_BETWEEN_PRETZELS/2
-print(places_for_pretzels)
-print(len(places_for_pretzels))
 
 all_banners = [] 
 
@@ -211,7 +220,15 @@ for i in range(TOTAL_BANNERS):
     
     banner_dict = {}
     banner_dict["id"] = i
-    banner_dict["image_details"] = create_new_banner(len(places_for_pretzels))
+    banner_dict["pretzel_size"] = int(random.choices(size, size_weights)[0])
+
+    if banner_dict["pretzel_size"] > 360:
+        banner_dict["pretzel_rotation"] = -40
+    else:
+        banner_dict["pretzel_rotation"] = random.choices(rotation, rotation_weights)[0]
+
+    banner_dict["pretzel_grid"] = calculate_grid(banner_dict["pretzel_size"])
+    banner_dict["image_details"] = create_new_banner(len(banner_dict["pretzel_grid"]))
     banner_dict["trait_count"] = count_traits(banner_dict["image_details"], pretzel,salt,half_chocolate_coat,full_chocolate_coat,topping_half,topping_full)
     all_banners.append(banner_dict)
 
@@ -225,8 +242,8 @@ print("Are all banners unique?", all_banners_unique(all_banners))
 for banner in all_banners:
 
     pretzel_compositions = []
-    size = (PRETZEL_SIZE,PRETZEL_SIZE)
-    rotation = ROTATION
+    size = banner["pretzel_size"],banner["pretzel_size"]
+    rotation = banner["pretzel_rotation"]
     banner_background = Image.open(f'banner.png')
     banner_composition = banner_background.copy()
 
@@ -252,7 +269,7 @@ for banner in all_banners:
         #com3.save("./images/" + str(k) + "test.png")
     
         #compose banner
-        banner_composition.alpha_composite(com3, (places_for_pretzels[k][0],places_for_pretzels[k][1]))
+        banner_composition.alpha_composite(com3, (banner["pretzel_grid"][k][0],banner["pretzel_grid"][k][1]))
         k += 1
 
     #Convert to RGB
